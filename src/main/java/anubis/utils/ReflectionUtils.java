@@ -36,9 +36,12 @@ public class ReflectionUtils {
         return classBean.getAnnotation(BeanProperties.class);
     }
 
-    /*Não valida campos da classe pai, valida Collections*/
-    public static boolean anyEmptyValue(Object o) {
-        boolean anyEmptyValue = false;
+    /**
+     * Não valida campos da classe pai, valida Collections
+     * Retorna o Field que estiver vazio, ou null caso não encontre nenhum Field vazio
+     */
+    public static Field anyEmptyValue(Object o) {
+        Field anyEmptyValue = null;
         Field[] fields = o.getClass().getDeclaredFields();
         for(Field field : fields) {
             if(!isCollection(getValue(field, o)) && !isPrimitiveType(field)) {
@@ -47,12 +50,16 @@ public class ReflectionUtils {
             }
 
             if (isEmpty(field, o)) {
-                anyEmptyValue = true;
+                anyEmptyValue = field;
                 break;
             }
         }
 
         return anyEmptyValue;
+    }
+
+    public static boolean hasAnyEmptyValue(Object o) {
+        return anyEmptyValue(o) != null;
     }
 
     private static boolean isCollection(Object obj) {
@@ -80,7 +87,7 @@ public class ReflectionUtils {
             if (collection.isEmpty()) {
                 return true;
             }
-            return collection.stream().anyMatch(ReflectionUtils::anyEmptyValue);
+            return collection.stream().anyMatch(ReflectionUtils::hasAnyEmptyValue);
         }
 
         return false;
